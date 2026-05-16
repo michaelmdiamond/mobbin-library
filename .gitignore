@@ -1,0 +1,7 @@
+node_modules/
+dist/
+mobbin.db
+mobbin.db-wal
+mobbin.db-shm
+images/
+*.js.map

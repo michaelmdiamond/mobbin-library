@@ -1,0 +1,29 @@
+{
+  "name": "mobbin-library",
+  "version": "1.0.0",
+  "description": "Local cache and library for Mobbin UI screens",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "mobbin": "./src/cli.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "cli": "ts-node src/cli.ts",
+    "stats": "ts-node src/cli.ts stats",
+    "search": "ts-node src/cli.ts search"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^12.10.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.8.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
