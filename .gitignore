@@ -1,7 +1,15 @@
 node_modules/
 dist/
 mobbin.db
+mobbin*.db
+mobbin*.db.*
+mobbin*.db-*
 mobbin.db-wal
 mobbin.db-shm
 images/
 *.js.map
+credentials.json
+token.json
+mobbin-client.json
+mobbin-token.json
+.env

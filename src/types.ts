@@ -7,8 +7,10 @@ export interface MobbinScreen {
   platform: Platform
   imageUrl: string
   mobbinUrl: string
-  imagePath: string | null      // local file path relative to project root, null if not downloaded
-  imageData: Buffer | null      // raw image bytes if stored in DB
+  imagePath: string | null
+  imageData: Buffer | null
+  driveFileId: string | null
+  driveUrl: string | null
   queries: string[]             // all queries that surfaced this screen
   tags: string[]                // user-defined tags
   notes: string | null

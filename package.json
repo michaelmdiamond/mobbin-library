@@ -18,7 +18,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "better-sqlite3": "^12.10.0"
+    "@supabase/supabase-js": "^2.106.2",
+    "better-sqlite3": "^12.10.0",
+    "dotenv": "^17.4.2",
+    "googleapis": "^171.4.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
