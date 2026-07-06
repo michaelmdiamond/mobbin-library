@@ -228,7 +228,12 @@ function extractScreens(content?: Array<{ type: string; text?: string }>): Mobbi
   if (!content) return []
   for (const item of content) {
     if (item.type !== 'text' || !item.text) continue
-    const parsed = JSON.parse(item.text) as { screens?: MobbinScreenRaw[] } | MobbinScreenRaw[]
+    let parsed: { screens?: MobbinScreenRaw[] } | MobbinScreenRaw[]
+    try {
+      parsed = JSON.parse(item.text) as { screens?: MobbinScreenRaw[] } | MobbinScreenRaw[]
+    } catch {
+      throw new Error(`Mobbin API returned: ${item.text}`)
+    }
     if (Array.isArray(parsed)) return parsed
     if (parsed.screens) return parsed.screens
   }
