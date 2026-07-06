@@ -198,7 +198,7 @@ async function mcpRequest<T>(token: TokenSet, method: string, params: unknown, s
   return { result: json.result, sessionId: res.headers.get('mcp-session-id') ?? sessionId }
 }
 
-async function search(query: string, platform: 'ios' | 'web', limit: number, mode: 'deep' | 'fast'): Promise<void> {
+async function search(query: string, platform: 'ios' | 'web', limit: number, mode: 'deep' | 'standard' | 'fast'): Promise<void> {
   const token = await getToken()
   const initialized = await mcpRequest<unknown>(token, 'initialize', {
     protocolVersion: '2025-06-18',
@@ -250,9 +250,12 @@ async function main(): Promise<void> {
   if (command === 'search') {
     const query = args[0]
     if (!query) throw new Error('Usage: mobbin-raw search <query> [--platform ios|web] [--limit n] [--mode deep|fast]')
-    const platform = (args[args.indexOf('--platform') + 1] ?? 'ios') as 'ios' | 'web'
-    const limit = Number(args[args.indexOf('--limit') + 1] ?? 30)
-    const mode = (args[args.indexOf('--mode') + 1] ?? 'deep') as 'deep' | 'fast'
+    const platformIdx = args.indexOf('--platform')
+    const limitIdx = args.indexOf('--limit')
+    const modeIdx = args.indexOf('--mode')
+    const platform = (platformIdx >= 0 ? args[platformIdx + 1] : 'ios') as 'ios' | 'web'
+    const limit = Number(limitIdx >= 0 ? args[limitIdx + 1] : 30)
+    const mode = (modeIdx >= 0 ? args[modeIdx + 1] : 'deep') as 'deep' | 'standard' | 'fast'
     await search(query, platform, limit, mode)
     return
   }
