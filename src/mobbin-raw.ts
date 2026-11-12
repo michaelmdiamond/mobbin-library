@@ -1,7 +1,7 @@
+import { waitForAuthorizationCode, writePrivateJson } from "./oauth-security"
 import 'dotenv/config'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
-import * as http from 'http'
 import * as path from 'path'
 import { getClient } from './db'
 
@@ -46,7 +46,7 @@ function readJson<T>(file: string): T | null {
 }
 
 function writeJson(file: string, value: unknown): void {
-  try { fs.writeFileSync(file, JSON.stringify(value, null, 2)) } catch { /* read-only FS in CCR */ }
+  try { writePrivateJson(file, value) } catch { /* read-only FS in CCR */ }
 }
 
 async function readConfig<T>(key: string): Promise<T | null> {
@@ -86,28 +86,6 @@ async function registerClient(): Promise<OAuthClient> {
   return client
 }
 
-async function waitForCode(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      const url = new URL(req.url ?? '/', REDIRECT_URI)
-      const code = url.searchParams.get('code')
-      const error = url.searchParams.get('error')
-      res.writeHead(200, { 'Content-Type': 'text/html' })
-      if (code) {
-        res.end('<html><body><h2>Mobbin authorization complete. You can close this tab.</h2></body></html>')
-        server.close()
-        resolve(code)
-      } else {
-        res.end(`<html><body><h2>Authorization failed: ${error ?? 'missing code'}</h2></body></html>`)
-        server.close()
-        reject(new Error(error ?? 'missing code'))
-      }
-    })
-    server.on('error', reject)
-    server.listen(REDIRECT_PORT, '127.0.0.1')
-  })
-}
-
 async function login(): Promise<TokenSet> {
   const client = await registerClient()
   const verifier = base64Url(crypto.randomBytes(32))
@@ -125,7 +103,7 @@ async function login(): Promise<TokenSet> {
   url.searchParams.set('resource', MCP_URL)
 
   console.error(`Open this URL to authorize Mobbin:\n${url.toString()}\n`)
-  const codePromise = waitForCode()
+  const codePromise = waitForAuthorizationCode(REDIRECT_URI, state)
   const code = await codePromise
 
   const body = new URLSearchParams({
