@@ -1,3 +1,7 @@
+import { randomBytes } from "crypto"
+import { execFile } from "child_process"
+import { CodeChallengeMethod } from "google-auth-library"
+import { waitForAuthorizationCode, writePrivateJson } from "./oauth-security"
 import * as fs from 'fs'
 import * as path from 'path'
 import * as http from 'http'
@@ -31,44 +35,25 @@ export async function getAuthClient(): Promise<OAuth2Client> {
   client.setCredentials(token)
   client.on('tokens', (tokens) => {
     const current = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'))
-    fs.writeFileSync(TOKEN_PATH, JSON.stringify({ ...current, ...tokens }))
+    writePrivateJson(TOKEN_PATH, { ...current, ...tokens })
   })
   return client
 }
 
 export async function authorizeInteractive(): Promise<void> {
   const client = createOAuthClient()
-  const authUrl = client.generateAuthUrl({ access_type: 'offline', scope: SCOPES, redirect_uri: REDIRECT_URI })
-
-  // Spin up a local server to capture the redirect code automatically
-  const code = await new Promise<string>((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      const url = new URL(req.url!, `http://localhost:${REDIRECT_PORT}`)
-      const code = url.searchParams.get('code')
-      const error = url.searchParams.get('error')
-      res.writeHead(200, { 'Content-Type': 'text/html' })
-      if (code) {
-        res.end('<html><body><h2>Authorization complete. You can close this tab.</h2></body></html>')
-        server.close()
-        resolve(code)
-      } else {
-        res.end(`<html><body><h2>Error: ${error ?? 'unknown'}</h2></body></html>`)
-        server.close()
-        reject(new Error(`OAuth error: ${error}`))
-      }
-    })
-    server.listen(REDIRECT_PORT, () => {
-      console.log(`\nOpen this URL in your browser to authorize Drive access:\n\n${authUrl}\n`)
-      // Try to open the browser automatically
-      const { exec } = require('child_process')
-      exec(`open "${authUrl}"`)
-    })
-    server.on('error', reject)
+  const state = randomBytes(32).toString('base64url')
+  const { codeVerifier, codeChallenge } = await client.generateCodeVerifierAsync()
+  const authUrl = client.generateAuthUrl({ access_type: 'offline', scope: SCOPES, redirect_uri: REDIRECT_URI,
+    state, code_challenge: codeChallenge, code_challenge_method: CodeChallengeMethod.S256 })
+  const code = await waitForAuthorizationCode(REDIRECT_URI, state, () => {
+    console.log(`Open this URL to authorize Drive access:\n${authUrl}`)
+    execFile('open', [authUrl], () => { /* URL remains available if opening fails. */ })
   })
 
-  const { tokens } = await client.getToken({ code, redirect_uri: REDIRECT_URI })
+  const { tokens } = await client.getToken({ code, codeVerifier, redirect_uri: REDIRECT_URI })
   client.setCredentials(tokens)
-  fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens))
+  writePrivateJson(TOKEN_PATH, tokens)
   console.log('Authorization complete. Token saved.')
 }
 
