@@ -11,7 +11,8 @@
     "build": "tsc",
     "cli": "ts-node src/cli.ts",
     "stats": "ts-node src/cli.ts stats",
-    "search": "ts-node src/cli.ts search"
+    "search": "ts-node src/cli.ts search",
+    "test": "npm run build && node --test tests/*.test.cjs"
   },
   "keywords": [],
   "author": "",
