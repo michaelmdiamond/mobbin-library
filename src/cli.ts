@@ -220,6 +220,7 @@ async function main(): Promise<void> {
         }
       }
       console.log(JSON.stringify({ uploaded: done, failed }))
+      if (failed > 0) process.exitCode = 2
       break
     }
 

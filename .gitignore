@@ -13,3 +13,4 @@ token.json
 mobbin-client.json
 mobbin-token.json
 .env
+.ingest-state/
